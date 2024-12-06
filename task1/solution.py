@@ -1,12 +1,12 @@
 from functools import wraps
 
 
-def check_type(argument: int | bool | float | str, argument_type: type) -> None:
+def check_type(argument: int | bool | float | str, argument_key:str, argument_type: type) -> None:
     """checking the type of the argument with the type"""
 
     # used type, because isinstance(True, int) = True
     if (t := type(argument)) != argument_type:
-        raise TypeError(f"Parameter {argument}: excepted type: {argument_type.__name__}, got: {t.__name__}")
+        raise TypeError(f"Parameter {argument_key}: excepted type: {argument_type.__name__}, got: {t.__name__}")
 
 
 def check_all_args(annotation: dict, args: tuple, kwargs: dict) -> None:
@@ -20,8 +20,8 @@ def check_all_args(annotation: dict, args: tuple, kwargs: dict) -> None:
 
 def check_args(annotation: dict, args: tuple) -> None:
     """checking args arguments of function with the annotation"""
-
-    [check_type(arg, arg_type) for arg, arg_type in zip(args, annotation.values())]
+    annotation_elements = annotation.items()
+    [check_type(arg, arg_annotation[0], arg_annotation[1]) for arg, arg_annotation in zip(args, annotation_elements)]
 
 
 def check_kwargs(annotation: dict, kwargs: dict) -> None:
@@ -29,7 +29,7 @@ def check_kwargs(annotation: dict, kwargs: dict) -> None:
 
     for key, value in kwargs.items():
         if key in annotation:
-            check_type(value, annotation[key])
+            check_type(value, key, annotation[key])
         else:
             raise TypeError(f"Argument {key}: didn't find in annotation")
 
@@ -47,8 +47,7 @@ def strict(func):
     return wrapper
 
 
-# @strict
-# def sum_two_without_ann(a, b):
-#     return a + b
-#
-# sum_two_without_ann(1, 1)
+@strict
+def sum_two(a: int, b: int) -> int:
+    return a + b
+
